@@ -4,6 +4,21 @@ cmake_minimum_required(VERSION 3.10)
 # 设置工程名字
 project(libimageviewer VERSION 0.1.0)
 
+# 检查dtkwidget版本
+execute_process(COMMAND dpkg -s libdtkwidget-dev
+                COMMAND grep Version
+                TIMEOUT 5
+                OUTPUT_VARIABLE DWIDGET_VERSION_STR)
+string(REPLACE "Version: " "" DWIDGET_VERSION_STR ${DWIDGET_VERSION_STR})
+message(STATUS "BUILD DTKWidget VERSION ${DWIDGET_VERSION_STR}")
+
+if (${DWIDGET_VERSION_STR} VERSION_LESS "5.6.9-1")
+    message(STATUS "Use specific dtk watermakr, Version < 5.6.9-1")
+    add_definitions(-DUSE_SPECIFIC_DTK_WATERMARK)
+else()
+    message(STATUS "Use master dtk watermakr, Version >= 5.6.9-1")
+endif()
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -106,7 +121,6 @@ set(${TARGET_NAME} ${CMAKE_INSTALL_LIBDIR})
 
 set_target_properties(${TARGET_NAME} PROPERTIES VERSION 0.1.0 SOVERSION 0.1)
 
-
 target_include_directories(${CMD_NAME} PUBLIC ${3rd_lib_INCLUDE_DIRS}  ${TIFF_INCLUDE_DIRS} ${dfm-io_lib_INCLUDE_DIRS})
 target_link_libraries(imageviewer ${3rd_lib_LIBRARIES} freeimage ${TIFF_LIBRARIES} ${dfm-io_lib_LIBRARIES} dl)
 
@@ -115,15 +129,18 @@ configure_file(libimageviewer.pc.in ${PROJECT_BINARY_DIR}/libimageviewer.pc @ONL
 
 install(TARGETS ${CMD_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
+# 公共库头文件
 install(FILES
     imageengine.h
     imageviewer.h
     image-viewer_global.h
     movieservice.h
+    quickprint.h
     DESTINATION include/libimageviewer)
 
+# pkg-config 配置文件
 install(FILES ${PROJECT_BINARY_DIR}/libimageviewer.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-#translations
+# translations 翻译文件
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/translations
     DESTINATION ${PREFIX}/share/libimageviewer
     FILES_MATCHING PATTERN "*.qm")
