@@ -31,14 +31,12 @@
 #include <QImageReader>
 #include <QTranslator>
 #include <QDirIterator>
+#include <QStandardPaths>
 
 #include <DApplication>
 #include <DDesktopServices>
 
 
-#ifdef USE_UNIONIMAGE
-#include "unionimage.h"
-#endif
 DWIDGET_USE_NAMESPACE
 
 // 当前动态库使用的翻译QM翻译文件路径
@@ -53,22 +51,6 @@ const QString DATETIME_FORMAT_EXIF = "yyyy:MM:dd HH:mm:ss";
 
 QPixmap renderSVG(const QString &filePath, const QSize &size)
 {
-    /*lmh0724使用USE_UNIONIMAGE*/
-#ifdef USE_UNIONIMAGE
-    QImage tImg(size, QImage::Format_ARGB32);
-    QString errMsg;
-    QSize realSize;
-//    if (!UnionImage_NameSpace::loadStaticImageFromFile(filePath, tImg, realSize, errMsg)) {
-//        qDebug() << errMsg;
-//    }
-    if (!LibUnionImage_NameSpace::loadStaticImageFromFile(filePath, tImg, errMsg)) {
-        qDebug() << errMsg;
-    }
-    QPixmap pixmap;
-    pixmap = QPixmap::fromImage(tImg);
-
-    return pixmap;
-#else
     QImageReader reader;
     QPixmap pixmap;
 
@@ -84,7 +66,6 @@ QPixmap renderSVG(const QString &filePath, const QSize &size)
     }
 
     return pixmap;
-#endif
 }
 
 //QString sizeToHuman(const qlonglong bytes)
@@ -404,12 +385,12 @@ bool trashFile(const QString &file)
 QString SpliteText(const QString &text, const QFont &font, int nLabelSize, bool bReturn)
 {
     QFontMetrics fm(font);
-    int nTextSize = fm.width(text);
+    int nTextSize = fm.horizontalAdvance(text);
     if (nTextSize > nLabelSize) {
         int nPos = 0;
         long nOffset = 0;
         for (int i = 0; i < text.size(); i++) {
-            nOffset += fm.width(text.at(i));
+            nOffset += fm.horizontalAdvance(text.at(i));
             if (nOffset >= nLabelSize) {
                 nPos = i;
                 break;
@@ -475,21 +456,8 @@ bool mountDeviceExist(const QString &path)
 bool checkCommandExist(const QString &command)
 {
     try {
-        QProcess bash;
-        bash.start("bash");
-        bash.waitForStarted();
-        bash.write(("command -v " + command).toUtf8());
-        bash.closeWriteChannel();
-        if (!bash.waitForFinished()) {
-            qWarning() << bash.errorString();
-            return false;
-        }
-        auto output = bash.readAllStandardOutput();
-        if (output.isEmpty()) {
-            return false;
-        } else {
-            return true;
-        }
+        QString path = QStandardPaths::findExecutable(command);
+        return !path.isEmpty();
     } catch (std::logic_error &e) {
         qWarning() << e.what();
         return false;
@@ -547,7 +515,11 @@ bool loadLibTransaltor()
             }
         }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QStringList parseLocalNameList = QLocale::system().name().split("_", Qt::SkipEmptyParts);
+#else
         QStringList parseLocalNameList = QLocale::system().name().split("_", QString::SkipEmptyParts);
+#endif
         if (parseLocalNameList.length() > 0) {
             QString translateFilename = QString("/libimageviewer_%2.qm").arg(parseLocalNameList.at(0));
 

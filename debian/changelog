@@ -1,3 +1,36 @@
+image-editor (6.5.1) unstable; urgency=medium
+
+  * fix: support multi frame image load(Influence: quickprint)
+  * test: Add initFFmpegVideoThumbnailer unit test.
+          (Bug: 213565, 221557)(Influence: VideoThumbnailer)
+  * test: update test image path
+  * feat: [translation]add transifex config(Task: 361363)
+  * fix: Update build configuration and dependencies
+
+ -- renbin <renbin@uniontech.com>  Thu, 17 Apr 2025 13:23:01 +0800
+
+image-editor (6.5.0) unstable; urgency=medium
+
+  * fix: Use common method to check the version of dtkwidget
+  * feat: support qt6.8
+
+ -- renbin <renbin@uniontech.com>  Mon, 20 Jan 2025 10:25:26 +0800
+
+image-editor (1.0.47) unstable; urgency=medium
+
+  * remove freeimage
+
+ -- Liu zheng <liuzheng@uniontech.com>  Fri, 15 Nov 2024 14:00:19 +0800
+
+image-editor (1.0.46) unstable; urgency=medium
+
+  * chore(CI): add debian check workflow
+    Thanks to kuchune
+  * fix: temporary dirs are created by default
+  * fix: [cmd] remove bash use(Task: 362321)
+
+ -- renbin <renbin@uniontech.com>  Fri, 20 Sep 2024 14:16:15 +0800
+
 image-editor (1.0.45) unstable; urgency=medium
 
   * fix: 修复漏洞 【CITIVD】Deepin-image-viewer-缓冲区溢出

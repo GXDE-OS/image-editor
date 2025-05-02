@@ -260,29 +260,23 @@ bool PrintImageLoader::loadImageData(PrintImageData::Ptr &imagePtr)
     }
 
     try {
-        if (s_SingleFrame == imagePtr->frame) {
-            QString errorMsg;
-            if (!LibUnionImage_NameSpace::loadStaticImageFromFile(imagePtr->filePath, imagePtr->data, errorMsg)) {
-                qWarning() << QString("Load image failed: %1").arg(errorMsg);
-                imagePtr->state = ContentError;
-                return false;
-            }
-        } else {
-            QImageReader reader(imagePtr->filePath);
-            // jumpToImage 可能返回 false, 但数据正常读取
+        QImageReader reader(imagePtr->filePath);
+        // jumpToImage 可能返回 false, 但数据正常读取
+        if (s_SingleFrame != imagePtr->frame) {
             reader.jumpToImage(imagePtr->frame);
-            if (!reader.canRead()) {
-                qWarning() << QString("Load multi frame image failed(jump to image): %1").arg(reader.errorString());
-                imagePtr->state = ContentError;
-                return false;
-            }
+        }
+        
+        if (!reader.canRead()) {
+            qWarning() << QString("Load multi frame image failed(jump to image): %1").arg(reader.errorString());
+            imagePtr->state = ContentError;
+            return false;
+        }
 
-            imagePtr->data = reader.read();
-            if (imagePtr->data.isNull()) {
-                qWarning() << QString("Load multi frame image failed: %1").arg(reader.errorString());
-                imagePtr->state = ContentError;
-                return false;
-            }
+        imagePtr->data = reader.read();
+        if (imagePtr->data.isNull()) {
+            qWarning() << QString("Load multi frame image failed: %1").arg(reader.errorString());
+            imagePtr->state = ContentError;
+            return false;
         }
 
     } catch (const std::exception &e) {

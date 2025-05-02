@@ -18,11 +18,10 @@
 #include <DApplication>
 #include <dtkwidget_config.h>
 
-#ifdef USE_UNIONIMAGE
 #include "printhelper.h"
 #include "unionimage/unionimage.h"
-#endif
 
+#include <QFileInfo>
 PrintHelper *PrintHelper::m_Printer = nullptr;
 
 PrintHelper *PrintHelper::getIntance()
@@ -65,7 +64,7 @@ void PrintHelper::showPrintDialog(const QStringList &paths, QWidget *parent)
         } else {
             // QImage不应该多次赋值，所以换到这里来，修复style问题
             QImage img;
-            LibUnionImage_NameSpace::loadStaticImageFromFile(path, img, errMsg);
+            LibUnionImage_NameSpace::loadStaticImageFromFile(path, img, errMsg);         
             if (!img.isNull()) {
                 m_re->appendImage(img);
             }
@@ -164,7 +163,7 @@ void RequestedSlot::paintRequestSync(DPrinter *_printer)
         if (!img.isNull()) {
             painter.setRenderHint(QPainter::Antialiasing);
             painter.setRenderHint(QPainter::SmoothPixmapTransform);
-            QRect wRect = _printer->pageRect();
+            QRect wRect = _printer->pageRect(QPrinter::DevicePixel).toRect();
             // 修复bug98129，打印不完全问题，ratio应该是适应宽或者高，不应该直接适应宽
             qreal ratio = 0.0;
             qDebug() << wRect;
