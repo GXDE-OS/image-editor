@@ -168,15 +168,9 @@ target_compile_definitions(${TARGET_NAME} PRIVATE -DPLUGIN_QM_TRANS_PATH=${CMAKE
 
 # Accelerated compilation of optimized parameters
 if(NOT(CMAKE_BUILD_TYPE STREQUAL "Debug"))
-    if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "mips64")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wl,-O1 -Wl,-E -fPIE -ffunction-sections -fdata-sections -Wl,--gc-sections -ftree-vectorize -march=loongson3a -mhard-float -mno-micromips -mno-mips16 -flax-vector-conversions -mloongson-ext2 -mloongson-mmi -z noexecstack")
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wl,-O1 -Wl,-E -fPIE -ffunction-sections -fdata-sections -Wl,--gc-sections -ftree-vectorize -march=loongson3a -mhard-float -mno-micromips -mno-mips16 -flax-vector-conversions -mloongson-ext2 -mloongson-mmi -z noexecstack")
-        SET(CMAKE_EXE_LINKER_FLAGS "-pie")
-    else()
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wl,-O1 -Wl,-E -fPIE -ffunction-sections -fdata-sections -Wl,--gc-sections")
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3  -Wl,-O1 -Wl,-E -fPIE -ffunction-sections -fdata-sections -Wl,--gc-sections")
-        SET(CMAKE_EXE_LINKER_FLAGS "-pie")
-    endif()
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wl,-O1 -Wl,-E -fPIE -ffunction-sections -fdata-sections -Wl,--gc-sections")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3  -Wl,-O1 -Wl,-E -fPIE -ffunction-sections -fdata-sections -Wl,--gc-sections")
+    SET(CMAKE_EXE_LINKER_FLAGS "-pie")
 endif()
 
 if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "sw_64")
