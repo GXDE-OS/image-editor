@@ -1,20 +1,17 @@
 # Maintainer: CharOfString <root@charofstring.cc>
-pkgname=libimageeditor6-git
+pkgbase=libimageeditor-git
+pkgname=('libimageeditor6-git' 'libimageeditor-git')
 pkgver=6.5.1
 pkgrel=1
-pkgdesc='GXDE image viewer and visual effect libraries (Qt 6)'
+pkgdesc='GXDE image viewer and visual effect libraries'
 arch=('x86_64' 'aarch64')
 url="https://github.com/GXDE-OS/image-editor"
 license=('GPL-3.0-or-later' 'LGPL-3.0-or-later' 'libtiff' 'CC-BY-4.0' 'CC0-1.0')
-# 与 Debian 相同启用 dfm6-io 的 MTP 复制优化 ・ Like Debian, enable the dfm6-io MTP copy optimisation.
-depends=('dtk6core-git' 'dtk6gui-git' 'dtk6widget-git' 'util-dfm-git' 'qt6-base' 'qt6-svg' 'glib2'
-         'libmediainfo' 'libtiff' 'libgcc' 'libstdc++' 'glibc')
-makedepends=('git' 'cmake' 'ninja' 'pkgconf' 'qt6-tools')
-# Debian 把开发文件拆到 -dev 包，这里按 Arch 惯例合并；与 Arch 的 deepin-image-editor 安装相同的文件
-# Debian splits the development files into -dev; merged here as usual on Arch.
-# Installs the same files as Arch's deepin-image-editor.
-provides=('libimageeditor6' 'deepin-image-editor')
-conflicts=('libimageeditor6' 'deepin-image-editor')
+# 与 Debian 相同，CMake 同时构建 Qt 6（DTK6）与 Qt 5（DTK5）两套库
+# As on Debian, CMake builds both the Qt 6 (DTK6) and the Qt 5 (DTK5) libraries.
+makedepends=('git' 'cmake' 'ninja' 'pkgconf' 'qt6-base' 'qt6-svg' 'qt6-tools' 'qt5-base' 'qt5-svg'
+             'qt5-tools' 'dtk6core-git' 'dtk6gui-git' 'dtk6widget-git' 'dtkcore-git' 'dtkgui-git'
+             'dtkwidget-git' 'util-dfm-git' 'glib2' 'libmediainfo' 'libtiff' 'ffmpegthumbnailer')
 source=()
 sha512sums=()
 
@@ -24,7 +21,7 @@ _srcroot() {
 }
 
 build() {
-  # 与 debian/rules 相同（Qt 6） ・ Same as debian/rules (Qt 6).
+  # 与 debian/rules 相同 ・ Same as debian/rules.
   cmake -B build -S "$(_srcroot)" -GNinja \
     -DCMAKE_BUILD_TYPE=None \
     -DCMAKE_INSTALL_PREFIX=/usr \
@@ -32,11 +29,53 @@ build() {
     -DAPP_VERSION="$pkgver" \
     -DVERSION="$pkgver"
   ninja -C build
+  DESTDIR="$srcdir/root" ninja -C build install
 }
 
-package() {
-  DESTDIR="$pkgdir" ninja -C build install
+# 按 debian/*.install 拆分 ・ Split as in debian/*.install.
+_pick() {
+  local _f
+  cd "$srcdir/root"
+  for _f in "$@"; do
+    [[ -e $_f || -L $_f ]] || { echo "missing: $_f" >&2; return 1; }
+    install -d "$pkgdir/$(dirname "$_f")"
+    mv "$_f" "$pkgdir/$_f"
+  done
+}
+
+package_libimageeditor6-git() {
+  pkgdesc='GXDE image viewer and visual effect libraries (Qt 6)'
+  # 与 Debian 相同启用 dfm6-io 的 MTP 复制优化 ・ Like Debian, enable the dfm6-io MTP copy optimisation.
+  # ffmpegthumbnailer 通过 QLibrary 在运行时加载 ・ ffmpegthumbnailer is loaded with QLibrary at runtime.
+  depends=('dtk6core-git' 'dtk6gui-git' 'dtk6widget-git' 'util-dfm-git' 'qt6-base' 'qt6-svg' 'libtiff'
+           'ffmpegthumbnailer' 'libgcc' 'libstdc++' 'glibc')
+  # Debian 把开发文件拆到 -dev 包，这里按 Arch 惯例合并；与 Arch 的 deepin-image-editor 安装相同的文件
+  # Debian splits the development files into -dev; merged here as usual on
+  # Arch.  Installs the same files as Arch's deepin-image-editor.
+  provides=('libimageeditor6' 'deepin-image-editor')
+  conflicts=('libimageeditor6' 'deepin-image-editor')
+
+  cd "$srcdir/root"
+  _pick usr/lib/libimageviewer6.so* usr/lib/libimagevisualresult6.so* usr/lib/pkgconfig/libimageviewer6.pc \
+        usr/lib/pkgconfig/libimagevisualresult6.pc usr/include/libimageviewer6 usr/include/libimagevisualresult6 \
+        usr/share/libimageviewer6 usr/share/libimagevisualresult6
   # 与 debian/libimageeditor6.manpages 相同 ・ Same as debian/libimageeditor6.manpages.
   install -Dm644 "$(_srcroot)/debian/image-editor6.1" "$pkgdir/usr/share/man/man1/image-editor6.1"
+  install -Dm644 "$(_srcroot)/LICENSES/libtiff.txt" "$pkgdir/usr/share/licenses/$pkgname/libtiff.txt"
+}
+
+package_libimageeditor-git() {
+  pkgdesc='GXDE image viewer and visual effect libraries (Qt 5)'
+  depends=('dtkcore-git' 'dtkgui-git' 'dtkwidget-git' 'util-dfm-git' 'qt5-base' 'qt5-svg' 'libtiff'
+           'ffmpegthumbnailer' 'libgcc' 'libstdc++' 'glibc')
+  provides=('libimageeditor')
+  conflicts=('libimageeditor')
+
+  cd "$srcdir/root"
+  _pick usr/lib/libimageviewer.so* usr/lib/libimagevisualresult.so* usr/lib/pkgconfig/libimageviewer.pc \
+        usr/lib/pkgconfig/libimagevisualresult.pc usr/include/libimageviewer usr/include/libimagevisualresult \
+        usr/share/libimageviewer usr/share/libimagevisualresult
+  # 与 debian/libimageeditor.manpages 相同 ・ Same as debian/libimageeditor.manpages.
+  install -Dm644 "$(_srcroot)/debian/image-editor.1" "$pkgdir/usr/share/man/man1/image-editor.1"
   install -Dm644 "$(_srcroot)/LICENSES/libtiff.txt" "$pkgdir/usr/share/licenses/$pkgname/libtiff.txt"
 }
