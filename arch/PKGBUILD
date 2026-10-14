@@ -1,0 +1,42 @@
+# Maintainer: CharOfString <root@charofstring.cc>
+pkgname=libimageeditor6-git
+pkgver=6.5.1
+pkgrel=1
+pkgdesc='GXDE image viewer and visual effect libraries (Qt 6)'
+arch=('x86_64' 'aarch64')
+url="https://github.com/GXDE-OS/image-editor"
+license=('GPL-3.0-or-later' 'LGPL-3.0-or-later' 'libtiff' 'CC-BY-4.0' 'CC0-1.0')
+# 与 Debian 相同启用 dfm6-io 的 MTP 复制优化 ・ Like Debian, enable the dfm6-io MTP copy optimisation.
+depends=('dtk6core-git' 'dtk6gui-git' 'dtk6widget-git' 'util-dfm-git' 'qt6-base' 'qt6-svg' 'glib2'
+         'libmediainfo' 'libtiff' 'libgcc' 'libstdc++' 'glibc')
+makedepends=('git' 'cmake' 'ninja' 'pkgconf' 'qt6-tools')
+# Debian 把开发文件拆到 -dev 包，这里按 Arch 惯例合并；与 Arch 的 deepin-image-editor 安装相同的文件
+# Debian splits the development files into -dev; merged here as usual on Arch.
+# Installs the same files as Arch's deepin-image-editor.
+provides=('libimageeditor6' 'deepin-image-editor')
+conflicts=('libimageeditor6' 'deepin-image-editor')
+source=()
+sha512sums=()
+
+# 直接使用 PKGBUILD 所在的 git 仓库作为源码 ・ Build from the git checkout this PKGBUILD lives in.
+_srcroot() {
+  git -C "$startdir" rev-parse --show-toplevel
+}
+
+build() {
+  # 与 debian/rules 相同（Qt 6） ・ Same as debian/rules (Qt 6).
+  cmake -B build -S "$(_srcroot)" -GNinja \
+    -DCMAKE_BUILD_TYPE=None \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib \
+    -DAPP_VERSION="$pkgver" \
+    -DVERSION="$pkgver"
+  ninja -C build
+}
+
+package() {
+  DESTDIR="$pkgdir" ninja -C build install
+  # 与 debian/libimageeditor6.manpages 相同 ・ Same as debian/libimageeditor6.manpages.
+  install -Dm644 "$(_srcroot)/debian/image-editor6.1" "$pkgdir/usr/share/man/man1/image-editor6.1"
+  install -Dm644 "$(_srcroot)/LICENSES/libtiff.txt" "$pkgdir/usr/share/licenses/$pkgname/libtiff.txt"
+}
