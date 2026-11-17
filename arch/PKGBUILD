@@ -1,6 +1,6 @@
 # Maintainer: CharOfString <root@charofstring.cc>
-pkgbase=libimageeditor-git
-pkgname=('libimageeditor6-git' 'libimageeditor-git')
+pkgbase=libimageeditor
+pkgname=('libimageeditor6' 'libimageeditor')
 pkgver=6.5.1
 pkgrel=1
 pkgdesc='GXDE image viewer and visual effect libraries'
@@ -10,8 +10,8 @@ license=('GPL-3.0-or-later' 'LGPL-3.0-or-later' 'libtiff' 'CC-BY-4.0' 'CC0-1.0')
 # 与 Debian 相同，CMake 同时构建 Qt 6（DTK6）与 Qt 5（DTK5）两套库
 # As on Debian, CMake builds both the Qt 6 (DTK6) and the Qt 5 (DTK5) libraries.
 makedepends=('git' 'cmake' 'ninja' 'pkgconf' 'qt6-base' 'qt6-svg' 'qt6-tools' 'qt5-base' 'qt5-svg'
-             'qt5-tools' 'dtk6core-git' 'dtk6gui-git' 'dtk6widget-git' 'dtkcore-git' 'dtkgui-git'
-             'dtkwidget-git' 'util-dfm-git' 'glib2' 'libmediainfo' 'libtiff' 'ffmpegthumbnailer')
+             'qt5-tools' 'gxde-dtk6core' 'gxde-dtk6gui' 'gxde-dtk6widget' 'gxde-dtkcore' 'gxde-dtkgui'
+             'gxde-dtkwidget' 'util-dfm' 'glib2' 'libmediainfo' 'libtiff' 'ffmpegthumbnailer')
 source=()
 sha512sums=()
 
@@ -43,17 +43,18 @@ _pick() {
   done
 }
 
-package_libimageeditor6-git() {
+package_libimageeditor6() {
   pkgdesc='GXDE image viewer and visual effect libraries (Qt 6)'
   # 与 Debian 相同启用 dfm6-io 的 MTP 复制优化 ・ Like Debian, enable the dfm6-io MTP copy optimisation.
   # ffmpegthumbnailer 通过 QLibrary 在运行时加载 ・ ffmpegthumbnailer is loaded with QLibrary at runtime.
-  depends=('dtk6core-git' 'dtk6gui-git' 'dtk6widget-git' 'util-dfm-git' 'qt6-base' 'qt6-svg' 'libtiff'
+  depends=('gxde-dtk6core' 'gxde-dtk6gui' 'gxde-dtk6widget' 'util-dfm' 'qt6-base' 'qt6-svg' 'libtiff'
            'ffmpegthumbnailer' 'libgcc' 'libstdc++' 'glibc')
   # Debian 把开发文件拆到 -dev 包，这里按 Arch 惯例合并；与 Arch 的 deepin-image-editor 安装相同的文件
   # Debian splits the development files into -dev; merged here as usual on
   # Arch.  Installs the same files as Arch's deepin-image-editor.
-  provides=('libimageeditor6' 'deepin-image-editor')
-  conflicts=('libimageeditor6' 'deepin-image-editor')
+  provides=('deepin-image-editor' "libimageeditor6-git=$pkgver")
+  conflicts=('deepin-image-editor' 'libimageeditor6-git')
+  replaces=('libimageeditor6-git')
 
   cd "$srcdir/root"
   _pick usr/lib/libimageviewer6.so* usr/lib/libimagevisualresult6.so* usr/lib/pkgconfig/libimageviewer6.pc \
@@ -64,12 +65,13 @@ package_libimageeditor6-git() {
   install -Dm644 "$(_srcroot)/LICENSES/libtiff.txt" "$pkgdir/usr/share/licenses/$pkgname/libtiff.txt"
 }
 
-package_libimageeditor-git() {
+package_libimageeditor() {
   pkgdesc='GXDE image viewer and visual effect libraries (Qt 5)'
-  depends=('dtkcore-git' 'dtkgui-git' 'dtkwidget-git' 'util-dfm-git' 'qt5-base' 'qt5-svg' 'libtiff'
+  depends=('gxde-dtkcore' 'gxde-dtkgui' 'gxde-dtkwidget' 'util-dfm' 'qt5-base' 'qt5-svg' 'libtiff'
            'ffmpegthumbnailer' 'libgcc' 'libstdc++' 'glibc')
-  provides=('libimageeditor')
-  conflicts=('libimageeditor')
+  provides=("libimageeditor-git=$pkgver")
+  conflicts=('libimageeditor-git')
+  replaces=('libimageeditor-git')
 
   cd "$srcdir/root"
   _pick usr/lib/libimageviewer.so* usr/lib/libimagevisualresult.so* usr/lib/pkgconfig/libimageviewer.pc \
